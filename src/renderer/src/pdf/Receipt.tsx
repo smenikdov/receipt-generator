@@ -75,7 +75,7 @@ const NdsText = ({ style }: { style?: Style }) => (
 
 interface Props {
     payment: StudentPayment,
-    receiptNumber: number
+    receiptNumber: string,
 }
 
 const Receipt = ({ payment, receiptNumber }: Props) => {

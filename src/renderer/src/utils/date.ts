@@ -26,6 +26,7 @@ export const formatDate = (
     };
 
     const yyyy = date.getFullYear();
+    const yy = +yyyy.toString().slice(-2);
     const MM = date.getMonth() + 1;
     const MMMM = getMonthAsString(MM);
     const dd = date.getDate();
@@ -35,6 +36,7 @@ export const formatDate = (
     const ss = date.getSeconds();
 
     format = format.replace(/yyyy/g, f(yyyy, 4));
+    format = format.replace(/yy/g, f(yy, 2));
     format = format.replace(/MMMM/g, MMMM);
     format = format.replace(/MM/g, f(MM, 2));
     format = format.replace(/dd/g, f(dd, 2));

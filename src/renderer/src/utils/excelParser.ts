@@ -41,8 +41,6 @@ export const parseExcel = async (file: File): Promise<StudentPayment[]> => {
             description:   row[8],
         }));
 
-        console.log(4444, json);
-
         return payments;
     }
     catch (error) {

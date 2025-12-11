@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Button, Carousel, DatePicker, Form, Upload, message, Typography } from 'antd';
+import { Button, Carousel, Col, DatePicker, Form, InputNumber, Row, Upload, message, Typography } from 'antd';
 import { LeftOutlined, RightOutlined, UploadOutlined } from '@ant-design/icons';
 import { PDFViewer } from '@react-pdf/renderer';
 import Receipt from './pdf/Receipt';
@@ -17,7 +17,7 @@ type PDFDocumentElement = React.ReactElement<DocumentProps>;
 function App(): React.JSX.Element {
     const [form] = Form.useForm();
     const [fileList, setFileList] = useState<UploadFile[]>([]);
-    const [generatedPdfs, setGeneratedPdfs] = useState<{ fileName: string; document: PDFDocumentElement }[]>([]);
+    const [generatedPdfs, setGeneratedPdfs] = useState<{ fileName: string; document: PDFDocumentElement, receiptNumber: string }[]>([]);
     const [currentSlide, setCurrentSlide] = useState(0);
     const carouselRef = useRef<CarouselRef>(null);
 
@@ -40,7 +40,7 @@ function App(): React.JSX.Element {
         accept: '.xls,.xlsx',
     };
 
-    const onSubmit = async (values: { upload: any; dateRange: any }): Promise<void> => {
+    const onSubmit = async (values: { upload: any; dateRange: any, receiptStartNumber: number }): Promise<void> => {
         if (!fileList.length) {
             message.error('Пожалуйста, выберите Excel файл.');
             return;
@@ -59,15 +59,18 @@ function App(): React.JSX.Element {
                 return;
             }
 
+            const startNumber = values.receiptStartNumber;
+
             const pdfs = paymentsToShow.map((payment, index) => {
+                const receiptNumber = `${ formatDate(payment.operationDate!, 'yy') }-${ startNumber + index }`;
                 const sName = payment.studentName ? payment.studentName?.replace(/\s/g, '_') : 'Без_имени';
-                const rName = '';
                 const dName = formatDate(payment.operationDate!, 'dd-MM-yyyy');
-                const fileName = `${sName}_${rName}_${dName}.pdf`;
+                const fileName = `${sName}_${receiptNumber}_${dName}.pdf`;
 
                 return {
                     fileName,
-                    document: <Receipt payment={payment} receiptNumber={index + 1} />,
+                    document: <Receipt payment={payment} receiptNumber={receiptNumber} />,
+                    receiptNumber,
                 };
             });
 
@@ -105,13 +108,41 @@ function App(): React.JSX.Element {
                     </Upload>
                 </Form.Item>
 
-                <Form.Item
-                    name="dateRange"
-                    label="Период операций, для которых сгененрировать PDF"
-                    rules={[{ required: true, message: 'Обязательное поле' }]}
-                >
-                    <DatePicker.RangePicker style={{ width: '100%' }} format="DD.MM.YYYY" />
-                </Form.Item>
+                <Row gutter={16}>
+                    <Col span={14}>
+                        <Form.Item
+                            name="dateRange"
+                            label="Период операций"
+                            rules={[{ required: true, message: 'Обязательное поле' }]}
+                        >
+                            <DatePicker.RangePicker style={{ width: '100%' }} format="DD.MM.YYYY" />
+                        </Form.Item>
+                    </Col>
+                    <Col span={10}>
+                        <Form.Item
+                            name="receiptStartNumber"
+                            label="Номер, с которого начать генерацию"
+                            initialValue={1}
+                            rules={[
+                                { required: true, message: 'Обязательное поле' },
+                                {
+                                    type: 'number',
+                                    min: 1,
+                                    message: 'Номер должен быть больше нуля',
+                                },
+                                {
+                                    validator: (_, value) =>
+                                        Number.isInteger(value)
+                                            ? Promise.resolve()
+                                            : Promise.reject(new Error('Номер должен быть целым числом')),
+                                }
+                            ]}
+                        >
+                            <InputNumber style={{ width: '100%' }} />
+                        </Form.Item>
+                    </Col>
+                </Row>
+
 
                 <Form.Item>
                     <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
