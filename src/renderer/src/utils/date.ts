@@ -14,7 +14,7 @@ export const getMonthAsString = (month: number): string => {
         'декабря',
     ];
 
-    return months[month];
+    return months[month - 1];
 }
 
 export const formatDate = (
