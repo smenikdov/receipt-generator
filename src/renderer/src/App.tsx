@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Col, DatePicker, Form, InputNumber, Row, Upload, message, Typography, Spin } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import Receipt from './pdf/Receipt';
@@ -24,6 +24,13 @@ function App(): React.JSX.Element {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [loading, setLoading] = useState(false);
     const [loadingText, setLoadingText] = useState('Загрузка...');
+
+    useEffect(() => {
+        const savedReceiptStartNumber = localStorage.getItem('receiptStartNumber');
+        if (savedReceiptStartNumber) {
+            form.setFieldsValue({ receiptStartNumber: parseInt(savedReceiptStartNumber, 10) });
+        }
+    }, []);
 
     const props: UploadProps = {
         onRemove: (file) => {
@@ -79,6 +86,10 @@ function App(): React.JSX.Element {
                     receiptNumber,
                 };
             });
+
+            const nextReceiptStartNumber = startNumber + paymentsToShow.length;
+            localStorage.setItem('receiptStartNumber', String(nextReceiptStartNumber));
+            form.setFieldsValue({ receiptStartNumber: nextReceiptStartNumber });
 
             setGeneratedPdfs(pdfs);
             setCurrentSlide(0);
