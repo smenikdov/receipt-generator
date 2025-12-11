@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Button, DatePicker, Form, Upload, message, Typography } from 'antd'
 import type { UploadProps, UploadFile } from 'antd'
 import { UploadOutlined } from '@ant-design/icons'
+import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer'
+import Receipt from './pdf/Receipt';
 
 const { Title } = Typography
 
@@ -44,7 +46,7 @@ function App(): React.JSX.Element {
     }
 
     return (
-        <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
+        <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
             <Title level={3} style={{ textAlign: 'center', marginBottom: '30px' }}>
                 Генерация квитанций
             </Title>
@@ -85,6 +87,19 @@ function App(): React.JSX.Element {
                     </Button>
                 </Form.Item>
             </Form>
+
+            <div style={{ marginTop: '20px' }}>
+                <div style={{ width: '100%', height: '500px', marginBottom: '20px' }}>
+                    <PDFViewer width="100%" height="100%">
+                        <Receipt />
+                    </PDFViewer>
+                </div>
+                <PDFDownloadLink document={<Receipt />} fileName="document.pdf">
+                    {({ loading }) =>
+                        loading ? 'Загрузка...' : <Button type="primary">Скачать PDF</Button>
+                    }
+                </PDFDownloadLink>
+            </div>
         </div>
     )
 }
