@@ -1,70 +1,75 @@
-import { useState } from 'react'
-import { Button, DatePicker, Form, Upload, message, Typography } from 'antd'
-import type { UploadProps, UploadFile } from 'antd'
-import { UploadOutlined } from '@ant-design/icons'
-import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer'
+import { useState } from 'react';
+import { Button, DatePicker, Form, Upload, message, Typography } from 'antd';
+import type { UploadProps, UploadFile } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
+import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
 import Receipt from './pdf/Receipt';
+import { parseExcel, StudentPayment } from './utils/excelParser';
 
-const { Title } = Typography
+const { Title } = Typography;
 
 function App(): React.JSX.Element {
-    const [form] = Form.useForm()
-    const [fileList, setFileList] = useState<UploadFile[]>([])
+    const [form] = Form.useForm();
+    const [fileList, setFileList] = useState<UploadFile[]>([]);
 
     const props: UploadProps = {
         onRemove: (file) => {
-            const index = fileList.indexOf(file)
-            const newFileList = fileList.slice()
-            newFileList.splice(index, 1)
-            setFileList(newFileList)
+            const index = fileList.indexOf(file);
+            const newFileList = fileList.slice();
+            newFileList.splice(index, 1);
+            setFileList(newFileList);
         },
         beforeUpload: (file) => {
             if (fileList.length >= 1) {
-                message.error('Вы можете загрузить только один файл.')
-                return Upload.LIST_IGNORE
+                message.error('Вы можете загрузить только один файл.');
+                return Upload.LIST_IGNORE;
             }
             setFileList([...fileList, file as UploadFile]);
             return false;
         },
         fileList,
-        accept: '.xls,.xlsx'
+        accept: '.xls,.xlsx',
     };
 
-    const onFinish = (values: { upload: any; dateRange: any }): void => {
+    const onFinish = async (values: { upload: any; dateRange: any }): Promise<void> => {
         if (!fileList.length) {
-            message.error('Пожалуйста, выберите Excel файл.')
-            return
+            message.error('Пожалуйста, выберите Excel файл.');
+            return;
         }
-        const [startDate, endDate] = values.dateRange
-        message.success(
-            `Файл: ${fileList[0].name}, С: ${startDate.format('YYYY-MM-DD')}, По: ${endDate.format('YYYY-MM-DD')}`
-        )
-        console.log('Received values of form: ', values)
-        console.log('File:', fileList[0])
-        console.log('Start Date:', startDate.format('YYYY-MM-DD'))
-        console.log('End Date:', endDate.format('YYYY-MM-DD'))
-    }
+
+        const [startDate, endDate] = values.dateRange;
+
+        try {
+            const isOkPayment = (row: StudentPayment) => row.type && row.operationDate && row.operationDate >= startDate && row.operationDate <= endDate && row.incomeAmount > 0;
+            const payments = await parseExcel(fileList[0] as unknown as File);
+            console.log('Parsed Excel data:', payments);
+            const paymentsToShow = payments.filter(isOkPayment);
+
+            console.log('Parsed Excel data:', paymentsToShow);
+
+            message.success(`Файл: ${fileList[0].name}, С: ${startDate.format('YYYY-MM-DD')}, По: ${endDate.format('YYYY-MM-DD')}`);
+        }
+        catch (error) {
+            console.error('Error generating pdf files', error);
+            message.error('Произошла ошибка при генерации PDF файлов. Проверьте корректность Excel файла или обратитесь в техподдержку.');
+        }
+    };
 
     return (
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
             <Title level={3} style={{ textAlign: 'center', marginBottom: '30px' }}>
                 Генерация квитанций
             </Title>
-            <Form
-                form={form}
-                name="excel-pdf-generator"
-                layout="vertical"
-                onFinish={onFinish}
-            >
+            <Form form={form} name="excel-pdf-generator" layout="vertical" onFinish={onFinish}>
                 <Form.Item
                     name="upload"
                     label="Excel файл"
                     valuePropName="fileList"
                     getValueFromEvent={(e) => {
                         if (Array.isArray(e)) {
-                            return e
+                            return e;
                         }
-                        return e?.fileList
+                        return e?.fileList;
                     }}
                     rules={[{ required: true, message: 'Обязательное поле' }]}
                 >
@@ -101,7 +106,7 @@ function App(): React.JSX.Element {
                 </PDFDownloadLink>
             </div>
         </div>
-    )
+    );
 }
 
 export default App;

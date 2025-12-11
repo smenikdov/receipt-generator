@@ -64,8 +64,8 @@ const Header = ({ style }: { style?: Style }) => (
 const NdsText = ({ style }: { style?: Style }) => (
     <View style={style}>
         <Text>
-            НДС не облагается в связи с тем, что продавец применяет патентную
-            систему налогообложения и не является налогоплательщиком НДС.
+            НДС не облагается в связи с тем, что продавец применяет патентную систему
+            налогообложения и не является налогоплательщиком НДС.
         </Text>
     </View>
 );
@@ -77,12 +77,8 @@ const Receipt = () => (
                 <Header style={{ fontSize: 12, marginBottom: 25 }} />
 
                 <View style={styles.receiptBlock}>
-                    <Text style={styles.receiptNumber}>
-                        Квитанция № 25-1
-                    </Text>
-                    <Text style={styles.receiptDate}>
-                        Дата «03» 09 2025 г.
-                    </Text>
+                    <Text style={styles.receiptNumber}>Квитанция № 25-1</Text>
+                    <Text style={styles.receiptDate}>Дата «03» 09 2025 г.</Text>
                 </View>
 
                 <Table style={{ marginBottom: 20 }}>
@@ -110,9 +106,7 @@ const Receipt = () => (
                     style={{ marginBottom: 5 }}
                 />
 
-                <NdsText
-                    style={{ marginBottom: 20 }}
-                />
+                <NdsText style={{ marginBottom: 20 }} />
 
                 <Signature />
             </View>
@@ -121,14 +115,10 @@ const Receipt = () => (
                 <Header style={{ fontSize: 8, marginBottom: 10 }} />
 
                 <View style={{ marginBottom: 5 }}>
-                    <Text style={styles.receiptNumber}>
-                        Квитанция № 25-1
-                    </Text>
+                    <Text style={styles.receiptNumber}>Квитанция № 25-1</Text>
                 </View>
                 <View style={{ marginBottom: 20 }}>
-                    <Text style={styles.receiptDate}>
-                        Дата «03» 09 2025 г.
-                    </Text>
+                    <Text style={styles.receiptDate}>Дата «03» 09 2025 г.</Text>
                 </View>
 
                 <LabelWithValue

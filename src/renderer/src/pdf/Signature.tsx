@@ -21,12 +21,8 @@ const Signature = () => (
     <View style={styles.signature}>
         <Text style={styles.signatory}>ИП Седегова Д.А.</Text>
         <View style={styles.placeholder}>
-            <Text>
-                _________________
-            </Text>
-            <Text style={styles.tooltip}>
-                (подпись)
-            </Text>
+            <Text>_________________</Text>
+            <Text style={styles.tooltip}>(подпись)</Text>
         </View>
     </View>
 );

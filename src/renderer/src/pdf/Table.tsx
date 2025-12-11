@@ -23,35 +23,29 @@ const styles = StyleSheet.create({
 
 interface TableProps {
     children: React.ReactNode;
-    style?: Style,
+    style?: Style;
 }
 
 export const Table = ({ children, style }: TableProps) => (
-    <View style={{ ...styles.table, ...style }}>
-        {children}
-    </View>
+    <View style={{ ...styles.table, ...style }}>{children}</View>
 );
 
 interface RowProps {
     children: React.ReactNode;
-    style?: Style,
+    style?: Style;
 }
 
 export const Row = ({ children, style }: RowProps) => (
-    <View style={{ ...styles.row, ...style }}>
-        {children}
-    </View>
+    <View style={{ ...styles.row, ...style }}>{children}</View>
 );
 
 interface ColProps {
     value?: string;
-    style?: Style,
+    style?: Style;
 }
 
 export const Col = ({ value, style }: ColProps) => (
     <View style={{ ...styles.col, ...style }}>
-        <Text>
-            {value}
-        </Text>
+        <Text>{value}</Text>
     </View>
 );

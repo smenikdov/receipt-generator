@@ -17,12 +17,8 @@ interface LabelWithValueProps {
 const LabelWithValue = ({ label, value, style }: LabelWithValueProps) => (
     <View style={style}>
         <Text>
-            <Text style={styles.label}>
-                {label}{' '}
-            </Text>
-            <Text style={styles.value}>
-                {value}
-            </Text>
+            <Text style={styles.label}>{label} </Text>
+            <Text style={styles.value}>{value}</Text>
         </Text>
     </View>
 );
