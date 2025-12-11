@@ -1,14 +1,17 @@
-import React, { useRef, useState } from 'react';
-import { Button, Carousel, Col, DatePicker, Form, InputNumber, Row, Upload, message, Typography } from 'antd';
-import { LeftOutlined, RightOutlined, UploadOutlined } from '@ant-design/icons';
-import { PDFViewer } from '@react-pdf/renderer';
+import React, { useState } from 'react';
+import { Button, Col, DatePicker, Form, InputNumber, Row, Upload, message, Typography, Spin } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
 import Receipt from './pdf/Receipt';
 import { parseExcel, StudentPayment } from './utils/excelParser';
-import { CarouselRef } from 'antd/es/carousel';
+import { createZip } from './utils/zip';
 import { formatDate } from './utils/date';
+import { sleep } from './utils/index';
+import { saveAs } from 'file-saver';
 
 import type { UploadProps, UploadFile } from 'antd';
 import type { DocumentProps } from '@react-pdf/renderer';
+
+import ReceiptCarousel from './components/ReceiptCarousel';
 
 const { Title } = Typography;
 
@@ -19,7 +22,8 @@ function App(): React.JSX.Element {
     const [fileList, setFileList] = useState<UploadFile[]>([]);
     const [generatedPdfs, setGeneratedPdfs] = useState<{ fileName: string; document: PDFDocumentElement, receiptNumber: string }[]>([]);
     const [currentSlide, setCurrentSlide] = useState(0);
-    const carouselRef = useRef<CarouselRef>(null);
+    const [loading, setLoading] = useState(false);
+    const [loadingText, setLoadingText] = useState('Загрузка...');
 
     const props: UploadProps = {
         onRemove: (file) => {
@@ -46,9 +50,11 @@ function App(): React.JSX.Element {
             return;
         }
 
-        const [startDate, endDate] = values.dateRange;
-
+        setLoading(true);
+        setLoadingText('Генерация PDF...');
         try {
+            const [startDate, endDate] = values.dateRange;
+
             const isOkPayment = (row: StudentPayment) => row.type && row.operationDate && row.operationDate >= startDate && row.operationDate <= endDate && row.incomeAmount > 0;
             const payments = await parseExcel(fileList[0] as unknown as File);
             const paymentsToShow = payments.filter(isOkPayment);
@@ -82,11 +88,31 @@ function App(): React.JSX.Element {
         catch (error) {
             console.error('Error generating pdf files', error);
             message.error('Произошла ошибка при генерации PDF файлов. Проверьте корректность Excel файла или обратитесь в техподдержку.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDownload = async () => {
+        setLoading(true);
+        await sleep(300);
+        setLoadingText('Создание архива...');
+        try {
+            const zipBlob = await createZip(generatedPdfs);
+            saveAs(zipBlob, 'Квитанции.zip');
+        }
+        catch (error) {
+            console.error('Error creating zip file', error);
+            message.error('Произошла ошибка при создании ZIP файла. Проверьте корректность данных или обратитесь в техподдержку.');
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+            <Spin spinning={loading} tip={loadingText} size="large" fullscreen />
+
             <Title level={3} style={{ textAlign: 'center', marginBottom: '30px' }}>
                 Генерация квитанций
             </Title>
@@ -143,38 +169,33 @@ function App(): React.JSX.Element {
                     </Col>
                 </Row>
 
-
-                <Form.Item>
-                    <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
-                        Сгенерировать PDF
-                    </Button>
-                </Form.Item>
+                <Row gutter={16}>
+                    <Col span={12}>
+                        <Form.Item>
+                            <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
+                                Сгенерировать PDF
+                            </Button>
+                        </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                        <Form.Item>
+                            <Button
+                                style={{ width: '100%' }}
+                                disabled={generatedPdfs.length === 0}
+                                onClick={handleDownload}
+                            >
+                                Скачать архивом
+                            </Button>
+                        </Form.Item>
+                    </Col>
+                </Row>
             </Form>
 
-            <div style={{ marginTop: '20px' }}>
-                {generatedPdfs.length > 0 && (
-                    <>
-                        <Carousel
-                            ref={carouselRef}
-                            dots={false}
-                            afterChange={(current) => setCurrentSlide(current)}
-                        >
-                            {generatedPdfs.map(({ document }, index) => (
-                                <div key={index}>
-                                    <PDFViewer width="100%" height="600px">{document}</PDFViewer>
-                                </div>
-                            ))}
-                        </Carousel>
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '10px' }}>
-                            <Button onClick={() => carouselRef.current?.prev()} icon={<LeftOutlined />} />
-                            <Typography.Text style={{ margin: '0 10px' }}>
-                                {currentSlide + 1} / {generatedPdfs.length}
-                            </Typography.Text>
-                            <Button onClick={() => carouselRef.current?.next()} icon={<RightOutlined />} />
-                        </div>
-                    </>
-                )}
-            </div>
+            <ReceiptCarousel
+                generatedPdfs={generatedPdfs}
+                currentSlide={currentSlide}
+                setCurrentSlide={setCurrentSlide}
+            />
         </div>
     );
 }
