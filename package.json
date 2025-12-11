@@ -26,7 +26,8 @@
         "@electron-toolkit/utils": "^4.0.0",
         "@react-pdf/renderer": "^4.3.1",
         "antd": "^6.1.0",
-        "electron-updater": "^6.3.9"
+        "electron-updater": "^6.3.9",
+        "number-to-words-ru": "^2.4.1"
     },
     "devDependencies": {
         "@electron-toolkit/eslint-config-prettier": "^3.0.0",

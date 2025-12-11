@@ -7,6 +7,9 @@ import PTSerifBoldItalic from '../assets/font/PTSerif-BoldItalic.ttf';
 import Signature from './Signature';
 import LabelWithValue from './LabelWithValue';
 import { Table, Row, Col } from './Table';
+import { StudentPayment } from '../utils/excelParser';
+import { number2string } from '../utils/number';
+import { formatDate } from '../utils/date';
 
 Font.register({
     family: 'PTSerif',
@@ -70,75 +73,87 @@ const NdsText = ({ style }: { style?: Style }) => (
     </View>
 );
 
-const Receipt = () => (
-    <Document>
-        <Page size="A5" style={styles.page} orientation="landscape">
-            <View style={styles.userBlock}>
-                <Header style={{ fontSize: 12, marginBottom: 25 }} />
+interface Props {
+    payment: StudentPayment,
+    receiptNumber: number
+}
 
-                <View style={styles.receiptBlock}>
-                    <Text style={styles.receiptNumber}>Квитанция № 25-1</Text>
-                    <Text style={styles.receiptDate}>Дата «03» 09 2025 г.</Text>
+const Receipt = ({ payment, receiptNumber }: Props) => {
+    const operationDate = payment.operationDate ? new Date(payment.operationDate) : new Date();
+    const formattedDate = formatDate(operationDate, '«dd» MMMM yyyy г.');
+
+    const amountInWords = number2string(payment.incomeAmount).toLowerCase();
+
+    return (
+        <Document>
+            <Page size="A5" style={styles.page} orientation="landscape">
+                <View style={styles.userBlock}>
+                    <Header style={{ fontSize: 12, marginBottom: 25 }} />
+
+                    <View style={styles.receiptBlock}>
+                        <Text style={styles.receiptNumber}>Квитанция № {receiptNumber}</Text>
+                        <Text style={styles.receiptDate}>Дата {formattedDate}</Text>
+                    </View>
+
+                    <Table style={{ marginBottom: 20 }}>
+                        <Row style={{ fontWeight: 'bold' }}>
+                            <Col value="Наименование товара / услуги" />
+                            <Col value="Стоимость, руб" />
+                        </Row>
+                        <Row>
+                            <Col value={payment.type || 'Оплата за услуги'} />
+                            <Col value={payment.incomeAmount.toFixed(2)} />
+                        </Row>
+                        <Row>
+                            <Col />
+                            <Col />
+                        </Row>
+                        <Row>
+                            <Col />
+                            <Col />
+                        </Row>
+                    </Table>
+
+                    <LabelWithValue
+                        label="Оплачено за услуги:"
+                        value={`${ payment.incomeAmount.toFixed(2) } руб. (${ amountInWords }) 00 копеек`}
+                        style={{ marginBottom: 5 }}
+                    />
+
+                    <NdsText style={{ marginBottom: 20 }} />
+
+                    <Signature />
                 </View>
 
-                <Table style={{ marginBottom: 20 }}>
-                    <Row style={{ fontWeight: 'bold' }}>
-                        <Col value="Наименование товара / услуги" />
-                        <Col value="Стоимость, руб" />
-                    </Row>
-                    <Row>
-                        <Col value="Абонемент на групповые занятия" />
-                        <Col value="6082,00" />
-                    </Row>
-                    <Row>
-                        <Col />
-                        <Col />
-                    </Row>
-                    <Row>
-                        <Col />
-                        <Col />
-                    </Row>
-                </Table>
+                <View style={styles.managerBlock}>
+                    <Header style={{ fontSize: 8, marginBottom: 10 }} />
 
-                <LabelWithValue
-                    label="Оплачено за услуги:"
-                    value="6082,00 руб. (шесть тысяч восемьдесят два) 00 копеек"
-                    style={{ marginBottom: 5 }}
-                />
+                    <View style={{ marginBottom: 5 }}>
+                        <Text style={styles.receiptNumber}>Квитанция № {receiptNumber}</Text>
+                    </View>
+                    <View style={{ marginBottom: 20 }}>
+                        <Text style={styles.receiptDate}>Дата {formattedDate}</Text>
+                    </View>
 
-                <NdsText style={{ marginBottom: 20 }} />
+                    <LabelWithValue
+                        label="Наименование товара/услуги:"
+                        value={payment.type || 'Оплата за услуги'}
+                        style={{ marginBottom: 10 }}
+                    />
 
-                <Signature />
-            </View>
+                    <LabelWithValue
+                        label="Стоимость, руб:"
+                        value={`${ payment.incomeAmount.toFixed(2) } (${ amountInWords })`}
+                        style={{ marginBottom: 10 }}
+                    />
 
-            <View style={styles.managerBlock}>
-                <Header style={{ fontSize: 8, marginBottom: 10 }} />
+                    <NdsText style={{ marginBottom: 40 }} />
 
-                <View style={{ marginBottom: 5 }}>
-                    <Text style={styles.receiptNumber}>Квитанция № 25-1</Text>
+                    <Signature />
                 </View>
-                <View style={{ marginBottom: 20 }}>
-                    <Text style={styles.receiptDate}>Дата «03» 09 2025 г.</Text>
-                </View>
-
-                <LabelWithValue
-                    label="Наименование товара/услуги:"
-                    value="Абонемент на групповые занятия"
-                    style={{ marginBottom: 10 }}
-                />
-
-                <LabelWithValue
-                    label="Стоимость, руб:"
-                    value="6082,00"
-                    style={{ marginBottom: 10 }}
-                />
-
-                <NdsText style={{ marginBottom: 40 }} />
-
-                <Signature />
-            </View>
-        </Page>
-    </Document>
-);
+            </Page>
+        </Document>
+    )
+};
 
 export default Receipt;
