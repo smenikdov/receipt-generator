@@ -79,8 +79,7 @@ interface Props {
 }
 
 const Receipt = ({ payment, receiptNumber }: Props) => {
-    const operationDate = payment.operationDate ? new Date(payment.operationDate) : new Date();
-    const formattedDate = formatDate(operationDate, '«dd» MMMM yyyy г.');
+    const formattedDate = formatDate(payment.operationDate!, '«dd» MMMM yyyy г.');
 
     const amountInWords = number2string(payment.incomeAmount).toLowerCase();
 

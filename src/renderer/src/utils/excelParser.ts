@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import { readFileAsync } from './files';
 import { LESSON_TYPE_MAP } from '../constants';
+import moment from 'moment';
 
 export interface StudentPayment {
     studentName?:  string;
@@ -34,7 +35,7 @@ export const parseExcel = async (file: File): Promise<StudentPayment[]> => {
             type:          row[1] ? getLessonTypeFullName(row[1]) : null,
             group:         row[2],
             teacherName:   row[3],
-            operationDate: row[4] || null,
+            operationDate: row[4] ? moment(row[4]).add(1, 'hours').toDate() : null,
             incomeAmount:  row[5] || 0,
             paymentType:   row[6],
             expenseAmount: row[7] || 0,
