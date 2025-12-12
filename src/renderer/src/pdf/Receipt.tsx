@@ -95,7 +95,7 @@ const Receipt = ({ payment, receiptNumber }: Props) => {
                         <Text style={styles.receiptDate}>Дата {formattedDate}</Text>
                     </View>
 
-                    <Table style={{ marginBottom: 20 }}>
+                    <Table >
                         <Row style={{ fontWeight: 'bold' }}>
                             <Col value="Наименование товара / услуги" />
                             <Col value="Стоимость, руб" />
@@ -114,10 +114,16 @@ const Receipt = ({ payment, receiptNumber }: Props) => {
                         </Row>
                     </Table>
 
+                    {payment.studentName && (
+                        <Text style={{ marginTop: 5 }}>
+                            {payment.studentName}
+                        </Text>
+                    )}
+
                     <LabelWithValue
                         label="Оплачено за услуги:"
                         value={`${ payment.incomeAmount.toFixed(2) } руб. (${ amountInWords }) 00 копеек`}
-                        style={{ marginBottom: 5 }}
+                        style={{ marginBottom: 5, marginTop: 20 }}
                     />
 
                     <NdsText style={{ marginBottom: 20 }} />
