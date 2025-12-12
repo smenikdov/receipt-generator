@@ -28,16 +28,19 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         fontFamily: 'PTSerif',
         flexDirection: 'row',
+        alignItems: 'flex-start',
     },
 
     userBlock: {
         width: '66%',
         paddingRight: 10,
+        paddingBottom: 30,
     },
     managerBlock: {
         borderLeft: '1px solid #000',
         width: '34%',
         paddingLeft: 10,
+        paddingBottom: 30,
     },
 
     receiptBlock: {
@@ -85,7 +88,7 @@ const Receipt = ({ payment, receiptNumber }: Props) => {
 
     return (
         <Document>
-            <Page size="A5" style={styles.page} orientation="landscape">
+            <Page size="A4" style={styles.page}>
                 <View style={styles.userBlock}>
                     <Header style={{ fontSize: 12, marginBottom: 25 }} />
 

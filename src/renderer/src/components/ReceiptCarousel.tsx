@@ -37,7 +37,7 @@ const ReceiptCarousel: React.FC<ReceiptCarouselProps> = ({
             >
                 {generatedPdfs.map(({ document }, index) => (
                     <div key={index}>
-                        <PDFViewer width="100%" height="600px">{document}</PDFViewer>
+                        <PDFViewer width="100%" height="520px">{document}</PDFViewer>
                     </div>
                 ))}
             </Carousel>
