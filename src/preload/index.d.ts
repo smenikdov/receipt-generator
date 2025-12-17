@@ -4,7 +4,7 @@ declare global {
     interface Window {
         api: {
             pickFile: (extensions: string[]) => Promise<string | null>;
-            readExcelWithPassword: (filePath: string) => Promise<any>;
+            readExcelWithPassword: (filePath: string, password?: string) => Promise<any>;
         };
     }
 }

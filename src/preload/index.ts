@@ -3,7 +3,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 // Custom APIs for renderer
 const api = {
     pickFile: (extensions: string[]) => ipcRenderer.invoke('pickFile', extensions),
-    readExcelWithPassword: (filePath: string) => ipcRenderer.invoke('readExcelWithPassword', filePath),
+    readExcelWithPassword: (filePath: string, password?: string) => ipcRenderer.invoke('readExcelWithPassword', filePath, password),
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

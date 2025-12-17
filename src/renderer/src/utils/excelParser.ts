@@ -37,10 +37,9 @@ export const getPaymentMethod = (shortCode?: string): number | null => {
     return null;
 };
 
-export const parseExcel = async (filePath: string, lessonShortcuts: LessonShortcut[]): Promise<StudentPayment[]> => {
+export const parseExcel = async (filePath: string, lessonShortcuts: LessonShortcut[], password?: string): Promise<StudentPayment[]> => {
     try {
-        const rows = await window.api.readExcelWithPassword(filePath);
-        console.log(5, rows);
+        const rows = await window.api.readExcelWithPassword(filePath, password);
 
         const payments: StudentPayment[] = [];
 

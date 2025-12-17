@@ -12,6 +12,7 @@ import type { DocumentProps } from '@react-pdf/renderer';
 import Receipt from './pdf/Receipt';
 import SettingsModal from './components/SettingsModal';
 import ReceiptCarousel from './components/ReceiptCarousel';
+import PasswordModal from './components/PasswordModal';
 
 const { Title } = Typography;
 
@@ -26,6 +27,8 @@ function App(): React.JSX.Element {
     const [settingsVisible, setSettingsVisible] = useState(false);
     const [lessonShortcuts, setLessonShortcuts] = useState<LessonShortcut[]>(DEFAULT_LESSON_SHORTCUTS);
     const [filePath, setFilePath] = useState<string | null>(null);
+    const [excelPassword, setExcelPassword] = useState<string | undefined>();
+    const [isPasswordModalVisible, setPasswordModalVisible] = useState(false);
 
     const fileName = filePath ? filePath.split(/[/\\]/).pop() : '';
 
@@ -68,7 +71,7 @@ function App(): React.JSX.Element {
                 && row.operationDate >= startDate
                 && row.operationDate <= endDate && row.incomeAmount > 0;
 
-            const payments = await parseExcel(filePath, lessonShortcuts);
+            const payments = await parseExcel(filePath, lessonShortcuts, excelPassword);
             const paymentsToShow = payments.filter(isOkPayment);
 
             if (!paymentsToShow.length) {
@@ -131,7 +134,24 @@ function App(): React.JSX.Element {
         const selectedFilePath = await window.api.pickFile(['xlsx', 'xls']);
         if (selectedFilePath) {
             setFilePath(selectedFilePath);
+            setPasswordModalVisible(true);
         }
+    };
+
+    const handlePasswordModalOk = (password?: string) => {
+        setExcelPassword(password);
+        setPasswordModalVisible(false);
+        if (!filePath) {
+            message.error('Произошла ошибка. Файл не был выбран.');
+            return;
+        }
+        message.success(`Файл ${fileName} выбран.`);
+    };
+
+    const handlePasswordModalCancel = () => {
+        setFilePath(null);
+        setExcelPassword(undefined);
+        setPasswordModalVisible(false);
     };
 
     return (
@@ -158,7 +178,10 @@ function App(): React.JSX.Element {
                                 <Typography.Text>{fileName || 'Excel'}</Typography.Text>
                             </Col>
                             <Col>
-                                <Button onClick={() => setFilePath(null)} danger size="small">
+                                <Button onClick={() => {
+                                    setFilePath(null);
+                                    setExcelPassword(undefined);
+                                }} danger size="small">
                                     Удалить
                                 </Button>
                             </Col>
@@ -252,6 +275,13 @@ function App(): React.JSX.Element {
                 lessonShortcuts={lessonShortcuts}
                 onClose={() => setSettingsVisible(false)}
                 onUpdate={handleUpdateSettings}
+            />
+
+            <PasswordModal
+                open={isPasswordModalVisible}
+                onOk={handlePasswordModalOk}
+                onCancel={handlePasswordModalCancel}
+                fileName={fileName || ''}
             />
         </div>
     );

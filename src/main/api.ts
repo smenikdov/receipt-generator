@@ -15,9 +15,9 @@ export const api = {
         }
     },
 
-    readExcelWithPassword: async (filePath: string) => {
+    readExcelWithPassword: async (filePath: string, password?: string) => {
         const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.readFile(filePath, { password: '1234' });
+        await workbook.xlsx.readFile(filePath, { password });
         const worksheet = workbook.worksheets[0];
         const rows: any = [];
         worksheet.eachRow((row) => rows.push(row.values));

@@ -4,7 +4,7 @@ declare global {
     interface Window {
         api: {
             showOpenDialog: () => Promise<string | null>;
-            readExcelWithPassword: () => Promise<any>;
+            readExcelWithPassword: (filePath: string, password?: string) => Promise<any>;
         };
     }
 }
