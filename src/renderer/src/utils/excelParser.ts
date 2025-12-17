@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx';
+import * as ExcelJS from 'exceljs';
 import { readFileAsync } from './files';
 import { LESSON_TYPE_MAP } from '../constants';
 import moment from 'moment';
@@ -22,25 +22,38 @@ export const getLessonTypeFullName = (shortCode: string): string | null => {
 export const parseExcel = async (file: File): Promise<StudentPayment[]> => {
     try {
         const data = await readFileAsync(file);
-        const workbook = XLSX.read(data, { type: 'binary', cellDates: true });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const json: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        if (!data) {
+            throw new Error('Failed to read file');
+        }
 
-        // Remove header row
-        json.shift();
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(data as ArrayBuffer);
 
-        const payments: StudentPayment[] = json.map((row) => ({
-            studentName:   row[0],
-            type:          row[1] ? getLessonTypeFullName(row[1]) : null,
-            group:         row[2],
-            teacherName:   row[3],
-            operationDate: row[4] ? moment(row[4]).add(1, 'hours').toDate() : null,
-            incomeAmount:  row[5] || 0,
-            paymentType:   row[6],
-            expenseAmount: row[7] || 0,
-            description:   row[8],
-        }));
+        const worksheet = workbook.worksheets[0];
+        const payments: StudentPayment[] = [];
+
+        worksheet.eachRow((row, rowNumber) => {
+            // Skip header row
+            if (rowNumber === 1) {
+                return;
+            }
+
+            const rowValues = row.values as any[];
+
+            payments.push({
+                studentName:   rowValues[1],
+                type:          rowValues[2] ? getLessonTypeFullName(rowValues[2]) : null,
+                group:         rowValues[3],
+                teacherName:   rowValues[4],
+                operationDate: rowValues[5] || null,
+                incomeAmount:  rowValues[6] || 0,
+                paymentType:   rowValues[7],
+                expenseAmount: rowValues[8] || 0,
+                description:   rowValues[9],
+            });
+        });
+
+        console.log(payments.map((row) => row.operationDate));
 
         return payments;
     }

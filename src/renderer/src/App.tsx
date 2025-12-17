@@ -60,7 +60,11 @@ function App(): React.JSX.Element {
         setLoading(true);
         setLoadingText('Генерация PDF...');
         try {
-            const [startDate, endDate] = values.dateRange;
+            let [startDate, endDate] = values.dateRange;
+            startDate = startDate.hour(5).minute(0).second(0).toDate();
+            endDate = endDate.hour(5).minute(0).second(0).toDate();
+
+            console.log({ startDate, endDate });
 
             const isOkPayment = (row: StudentPayment) => row.type && row.operationDate && row.operationDate >= startDate && row.operationDate <= endDate && row.incomeAmount > 0;
             const payments = await parseExcel(fileList[0] as unknown as File);
@@ -149,7 +153,7 @@ function App(): React.JSX.Element {
                     <Col span={14}>
                         <Form.Item
                             name="dateRange"
-                            label="Период операций"
+                            label="Период операций (включительно)"
                             rules={[{ required: true, message: 'Обязательное поле' }]}
                         >
                             <DatePicker.RangePicker style={{ width: '100%' }} format="DD.MM.YYYY" />
