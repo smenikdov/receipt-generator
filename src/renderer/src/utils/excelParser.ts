@@ -1,5 +1,6 @@
 import * as ExcelJS from 'exceljs';
 import { readFileAsync } from './files';
+import { PAYMENT_METHOD_OPTIONS } from '../constants';
 
 export interface StudentPayment {
     studentName?:  string;
@@ -9,7 +10,7 @@ export interface StudentPayment {
     expenseAmount: number;
     group?:        string;
     teacherName?:  string;
-    paymentType?:  string;
+    paymentMethod: number | null;
     description?:  string;
 }
 
@@ -20,6 +21,22 @@ export const getLessonTypeFullName = (shortCode: string | undefined, lessonShort
 
     const lessonType = lessonShortcuts.find(item => item.key.toLowerCase() === shortCode.toLowerCase());
     return lessonType ? lessonType.value : null;
+};
+
+export const getPaymentMethod = (shortCode?: string): number | null => {
+    if (!shortCode) {
+        return null;
+    }
+
+    const lowerCaseCode = shortCode.toLowerCase();
+    if (lowerCaseCode === 'н') {
+        return PAYMENT_METHOD_OPTIONS.cash;
+    }
+    else if (lowerCaseCode === 'б') {
+        return PAYMENT_METHOD_OPTIONS.cashless;
+    }
+
+    return null;
 };
 
 export const parseExcel = async (file: File, lessonShortcuts: LessonShortcut[]): Promise<StudentPayment[]> => {
@@ -50,13 +67,11 @@ export const parseExcel = async (file: File, lessonShortcuts: LessonShortcut[]):
                 teacherName:   rowValues[4],
                 operationDate: rowValues[5] || null,
                 incomeAmount:  rowValues[6] || 0,
-                paymentType:   rowValues[7],
+                paymentMethod: getPaymentMethod(rowValues[7]),
                 expenseAmount: rowValues[8] || 0,
                 description:   rowValues[9],
             });
         });
-
-        console.log(payments.map((row) => row.operationDate));
 
         return payments;
     }

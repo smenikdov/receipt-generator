@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Col, DatePicker, Form, InputNumber, Row, Upload, message, Typography, Spin } from 'antd';
+import { Button, Col, DatePicker, Form, InputNumber, Row, Select, Upload, message, Typography, Spin } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import Receipt from './pdf/Receipt';
 import { parseExcel, StudentPayment } from './utils/excelParser';
 import { createZip } from './utils/zip';
 import { formatDate } from './utils/date';
-import { sleep } from './utils/index';
+import { getOptionsFromConstants, sleep } from './utils/index';
 import { saveAs } from 'file-saver';
-import { DEFAULT_LESSON_SHORTCUTS } from './constants';
+import { DEFAULT_LESSON_SHORTCUTS, PAYMENT_METHOD_OPTIONS  } from './constants';
 
 import type { UploadProps, UploadFile } from 'antd';
 import type { DocumentProps } from '@react-pdf/renderer';
@@ -65,7 +65,7 @@ function App(): React.JSX.Element {
         accept: '.xls,.xlsx',
     };
 
-    const onSubmit = async (values: { upload: any; dateRange: any, receiptStartNumber: number }): Promise<void> => {
+    const onSubmit = async (values: { upload: any; dateRange: any, receiptStartNumber: number, paymentMethods: number[] }): Promise<void> => {
         if (!fileList.length) {
             message.error('Пожалуйста, выберите Excel файл.');
             return;
@@ -74,13 +74,18 @@ function App(): React.JSX.Element {
         setLoading(true);
         setLoadingText('Генерация PDF...');
         try {
+            const paymentMethods = values.paymentMethods;
             let [startDate, endDate] = values.dateRange;
             startDate = startDate.hour(5).minute(0).second(0).toDate();
             endDate = endDate.hour(5).minute(0).second(0).toDate();
 
-            console.log({ startDate, endDate });
+            const isOkPayment = (row: StudentPayment) => row.type
+                && row.operationDate
+                && row.paymentMethod
+                && paymentMethods.includes(row.paymentMethod)
+                && row.operationDate >= startDate
+                && row.operationDate <= endDate && row.incomeAmount > 0;
 
-            const isOkPayment = (row: StudentPayment) => row.type && row.operationDate && row.operationDate >= startDate && row.operationDate <= endDate && row.incomeAmount > 0;
             const payments = await parseExcel(fileList[0] as unknown as File, lessonShortcuts);
             const paymentsToShow = payments.filter(isOkPayment);
 
@@ -117,7 +122,8 @@ function App(): React.JSX.Element {
         catch (error) {
             console.error('Error generating pdf files', error);
             message.error('Произошла ошибка при генерации PDF файлов. Проверьте корректность Excel файла или обратитесь в техподдержку.');
-        } finally {
+        }
+        finally {
             setLoading(false);
         }
     };
@@ -133,7 +139,8 @@ function App(): React.JSX.Element {
         catch (error) {
             console.error('Error creating zip file', error);
             message.error('Произошла ошибка при создании ZIP файла. Проверьте корректность данных или обратитесь в техподдержку.');
-        } finally {
+        }
+        finally {
             setLoading(false);
         }
     };
@@ -203,6 +210,20 @@ function App(): React.JSX.Element {
                         </Form.Item>
                     </Col>
                 </Row>
+
+                <Form.Item
+                    name="paymentMethods"
+                    label="Вид оплаты"
+                    initialValue={[ PAYMENT_METHOD_OPTIONS.cashless ]}
+                    rules={[{ required: true, message: 'Выберите хотя бы один вид оплаты' }]}
+                >
+                    <Select
+                        mode="multiple"
+                        allowClear
+                        placeholder="Выберите вид оплаты"
+                        options={getOptionsFromConstants(PAYMENT_METHOD_OPTIONS)}
+                    />
+                </Form.Item>
 
                 <Row gutter={16}>
                     <Col span={12}>
