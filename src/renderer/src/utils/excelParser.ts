@@ -1,7 +1,5 @@
 import * as ExcelJS from 'exceljs';
 import { readFileAsync } from './files';
-import { LESSON_TYPE_MAP } from '../constants';
-import moment from 'moment';
 
 export interface StudentPayment {
     studentName?:  string;
@@ -15,11 +13,16 @@ export interface StudentPayment {
     description?:  string;
 }
 
-export const getLessonTypeFullName = (shortCode: string): string | null => {
-    return LESSON_TYPE_MAP[shortCode] || null;
+export const getLessonTypeFullName = (shortCode: string | undefined, lessonShortcuts: LessonShortcut[]): string | null => {
+    if (!shortCode) {
+        return null;
+    }
+
+    const lessonType = lessonShortcuts.find(item => item.key.toLowerCase() === shortCode.toLowerCase());
+    return lessonType ? lessonType.value : null;
 };
 
-export const parseExcel = async (file: File): Promise<StudentPayment[]> => {
+export const parseExcel = async (file: File, lessonShortcuts: LessonShortcut[]): Promise<StudentPayment[]> => {
     try {
         const data = await readFileAsync(file);
         if (!data) {
@@ -42,7 +45,7 @@ export const parseExcel = async (file: File): Promise<StudentPayment[]> => {
 
             payments.push({
                 studentName:   rowValues[1],
-                type:          rowValues[2] ? getLessonTypeFullName(rowValues[2]) : null,
+                type:          getLessonTypeFullName(rowValues[2], lessonShortcuts),
                 group:         rowValues[3],
                 teacherName:   rowValues[4],
                 operationDate: rowValues[5] || null,

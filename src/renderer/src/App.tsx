@@ -7,10 +7,12 @@ import { createZip } from './utils/zip';
 import { formatDate } from './utils/date';
 import { sleep } from './utils/index';
 import { saveAs } from 'file-saver';
+import { DEFAULT_LESSON_SHORTCUTS } from './constants';
 
 import type { UploadProps, UploadFile } from 'antd';
 import type { DocumentProps } from '@react-pdf/renderer';
 
+import SettingsModal from './components/SettingsModal';
 import ReceiptCarousel from './components/ReceiptCarousel';
 
 const { Title } = Typography;
@@ -24,13 +26,25 @@ function App(): React.JSX.Element {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [loading, setLoading] = useState(false);
     const [loadingText, setLoadingText] = useState('Загрузка...');
+    const [settingsVisible, setSettingsVisible] = useState(false);
+    const [lessonShortcuts, setLessonShortcuts] = useState<LessonShortcut[]>(DEFAULT_LESSON_SHORTCUTS);
 
     useEffect(() => {
         const savedReceiptStartNumber = localStorage.getItem('receiptStartNumber');
         if (savedReceiptStartNumber) {
             form.setFieldsValue({ receiptStartNumber: parseInt(savedReceiptStartNumber, 10) });
         }
+
+        const savedLessonTypeMap = localStorage.getItem('lessonShortcuts');
+        if (savedLessonTypeMap) {
+            setLessonShortcuts(JSON.parse(savedLessonTypeMap));
+        }
     }, []);
+
+    const handleUpdateSettings = (newMap: LessonShortcut[]) => {
+        setLessonShortcuts(newMap);
+        localStorage.setItem('lessonShortcuts', JSON.stringify(newMap));
+    };
 
     const props: UploadProps = {
         onRemove: (file) => {
@@ -67,7 +81,7 @@ function App(): React.JSX.Element {
             console.log({ startDate, endDate });
 
             const isOkPayment = (row: StudentPayment) => row.type && row.operationDate && row.operationDate >= startDate && row.operationDate <= endDate && row.incomeAmount > 0;
-            const payments = await parseExcel(fileList[0] as unknown as File);
+            const payments = await parseExcel(fileList[0] as unknown as File, lessonShortcuts);
             const paymentsToShow = payments.filter(isOkPayment);
 
             if (!paymentsToShow.length) {
@@ -128,9 +142,15 @@ function App(): React.JSX.Element {
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
             <Spin spinning={loading} tip={loadingText} size="large" fullscreen />
 
-            <Title level={3} style={{ textAlign: 'center', marginBottom: '30px' }}>
-                Генерация квитанций
-            </Title>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                <Title level={3} style={{ margin: 0 }}>
+                    Генерация квитанций
+                </Title>
+                <Button onClick={() => setSettingsVisible(true)}>
+                    Настройка сокращений
+                </Button>
+            </div>
+
             <Form form={form} name="excel-pdf-generator" layout="vertical" onFinish={onSubmit}>
                 <Form.Item
                     name="upload"
@@ -210,6 +230,13 @@ function App(): React.JSX.Element {
                 generatedPdfs={generatedPdfs}
                 currentSlide={currentSlide}
                 setCurrentSlide={setCurrentSlide}
+            />
+
+            <SettingsModal
+                open={settingsVisible}
+                lessonShortcuts={lessonShortcuts}
+                onClose={() => setSettingsVisible(false)}
+                onUpdate={handleUpdateSettings}
             />
         </div>
     );
