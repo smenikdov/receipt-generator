@@ -1,5 +1,3 @@
-import * as ExcelJS from 'exceljs';
-import { readFileAsync } from './files';
 import { PAYMENT_METHOD_OPTIONS } from '../constants';
 
 export interface StudentPayment {
@@ -39,37 +37,29 @@ export const getPaymentMethod = (shortCode?: string): number | null => {
     return null;
 };
 
-export const parseExcel = async (file: File, lessonShortcuts: LessonShortcut[]): Promise<StudentPayment[]> => {
+export const parseExcel = async (filePath: string, lessonShortcuts: LessonShortcut[]): Promise<StudentPayment[]> => {
     try {
-        const data = await readFileAsync(file);
-        if (!data) {
-            throw new Error('Failed to read file');
-        }
+        const rows = await window.api.readExcelWithPassword(filePath);
+        console.log(5, rows);
 
-        const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(data as ArrayBuffer);
-
-        const worksheet = workbook.worksheets[0];
         const payments: StudentPayment[] = [];
 
-        worksheet.eachRow((row, rowNumber) => {
+        rows.map((row, rowNumber) => {
             // Skip header row
-            if (rowNumber === 1) {
+            if (rowNumber === 0) {
                 return;
             }
 
-            const rowValues = row.values as any[];
-
             payments.push({
-                studentName:   rowValues[1],
-                type:          getLessonTypeFullName(rowValues[2], lessonShortcuts),
-                group:         rowValues[3],
-                teacherName:   rowValues[4],
-                operationDate: rowValues[5] || null,
-                incomeAmount:  rowValues[6] || 0,
-                paymentMethod: getPaymentMethod(rowValues[7]),
-                expenseAmount: rowValues[8] || 0,
-                description:   rowValues[9],
+                studentName:   row[1],
+                type:          getLessonTypeFullName(row[2], lessonShortcuts),
+                group:         row[3],
+                teacherName:   row[4],
+                operationDate: row[5] || null,
+                incomeAmount:  row[6] || 0,
+                paymentMethod: getPaymentMethod(row[7]),
+                expenseAmount: row[8] || 0,
+                description:   row[9],
             });
         });
 

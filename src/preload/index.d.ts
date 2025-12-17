@@ -1,8 +1,10 @@
-import { ElectronAPI } from '@electron-toolkit/preload';
+import type { Workbook } from '@zurmokeeper/exceljs';
 
 declare global {
     interface Window {
-        electron: ElectronAPI;
-        api: unknown;
+        api: {
+            pickFile: (extensions: string[]) => Promise<string | null>;
+            readExcelWithPassword: (filePath: string) => Promise<any>;
+        };
     }
 }

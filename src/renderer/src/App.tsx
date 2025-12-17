@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Col, DatePicker, Form, InputNumber, Row, Select, Upload, message, Typography, Spin } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
-import Receipt from './pdf/Receipt';
+import { Button, Col, DatePicker, Form, InputNumber, Row, Select, message, Typography, Spin } from 'antd';
 import { parseExcel, StudentPayment } from './utils/excelParser';
 import { createZip } from './utils/zip';
 import { formatDate } from './utils/date';
 import { getOptionsFromConstants, sleep } from './utils/index';
 import { saveAs } from 'file-saver';
-import { DEFAULT_LESSON_SHORTCUTS, PAYMENT_METHOD_OPTIONS  } from './constants';
+import { DEFAULT_LESSON_SHORTCUTS, PAYMENT_METHOD_OPTIONS } from './constants';
 
-import type { UploadProps, UploadFile } from 'antd';
 import type { DocumentProps } from '@react-pdf/renderer';
 
+import Receipt from './pdf/Receipt';
 import SettingsModal from './components/SettingsModal';
 import ReceiptCarousel from './components/ReceiptCarousel';
 
@@ -21,13 +19,15 @@ type PDFDocumentElement = React.ReactElement<DocumentProps>;
 
 function App(): React.JSX.Element {
     const [form] = Form.useForm();
-    const [fileList, setFileList] = useState<UploadFile[]>([]);
     const [generatedPdfs, setGeneratedPdfs] = useState<{ fileName: string; document: PDFDocumentElement, receiptNumber: string }[]>([]);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [loading, setLoading] = useState(false);
     const [loadingText, setLoadingText] = useState('Загрузка...');
     const [settingsVisible, setSettingsVisible] = useState(false);
     const [lessonShortcuts, setLessonShortcuts] = useState<LessonShortcut[]>(DEFAULT_LESSON_SHORTCUTS);
+    const [filePath, setFilePath] = useState<string | null>(null);
+
+    const fileName = filePath ? filePath.split(/[/\\]/).pop() : '';
 
     useEffect(() => {
         const savedReceiptStartNumber = localStorage.getItem('receiptStartNumber');
@@ -46,33 +46,15 @@ function App(): React.JSX.Element {
         localStorage.setItem('lessonShortcuts', JSON.stringify(newMap));
     };
 
-    const props: UploadProps = {
-        onRemove: (file) => {
-            const index = fileList.indexOf(file);
-            const newFileList = fileList.slice();
-            newFileList.splice(index, 1);
-            setFileList(newFileList);
-        },
-        beforeUpload: (file) => {
-            if (fileList.length >= 1) {
-                message.error('Вы можете загрузить только один файл.');
-                return Upload.LIST_IGNORE;
-            }
-            setFileList([...fileList, file as UploadFile]);
-            return false;
-        },
-        fileList,
-        accept: '.xls,.xlsx',
-    };
-
-    const onSubmit = async (values: { upload: any; dateRange: any, receiptStartNumber: number, paymentMethods: number[] }): Promise<void> => {
-        if (!fileList.length) {
+    const onSubmit = async (values: { dateRange: any, receiptStartNumber: number, paymentMethods: number[] }): Promise<void> => {
+        if (!filePath) {
             message.error('Пожалуйста, выберите Excel файл.');
             return;
         }
 
         setLoading(true);
         setLoadingText('Генерация PDF...');
+
         try {
             const paymentMethods = values.paymentMethods;
             let [startDate, endDate] = values.dateRange;
@@ -86,11 +68,11 @@ function App(): React.JSX.Element {
                 && row.operationDate >= startDate
                 && row.operationDate <= endDate && row.incomeAmount > 0;
 
-            const payments = await parseExcel(fileList[0] as unknown as File, lessonShortcuts);
+            const payments = await parseExcel(filePath, lessonShortcuts);
             const paymentsToShow = payments.filter(isOkPayment);
 
             if (!paymentsToShow.length) {
-                message.warning('Не найдено подходящих платежей за указанный период.');
+                message.warning('Не найдено подходящих платежей');
                 setGeneratedPdfs([]);
                 return;
             }
@@ -98,7 +80,7 @@ function App(): React.JSX.Element {
             const startNumber = values.receiptStartNumber;
 
             const pdfs = paymentsToShow.map((payment, index) => {
-                const receiptNumber = `${ formatDate(payment.operationDate!, 'yy') }-${ startNumber + index }`;
+                const receiptNumber = `${formatDate(payment.operationDate!, 'yy')}-${startNumber + index}`;
                 const sName = payment.studentName ? payment.studentName?.replace(/\s/g, '_') : 'Без_имени';
                 const dName = formatDate(payment.operationDate!, 'dd-MM-yyyy');
                 const fileName = `${sName}_${receiptNumber}_${dName}.pdf`;
@@ -145,6 +127,13 @@ function App(): React.JSX.Element {
         }
     };
 
+    const handleFileSelect = async () => {
+        const selectedFilePath = await window.api.pickFile(['xlsx', 'xls']);
+        if (selectedFilePath) {
+            setFilePath(selectedFilePath);
+        }
+    };
+
     return (
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
             <Spin spinning={loading} tip={loadingText} size="large" fullscreen />
@@ -160,20 +149,25 @@ function App(): React.JSX.Element {
 
             <Form form={form} name="excel-pdf-generator" layout="vertical" onFinish={onSubmit}>
                 <Form.Item
-                    name="upload"
                     label="Excel файл"
-                    valuePropName="fileList"
-                    getValueFromEvent={(e) => {
-                        if (Array.isArray(e)) {
-                            return e;
-                        }
-                        return e?.fileList;
-                    }}
-                    rules={[{ required: true, message: 'Обязательное поле' }]}
+                    required
                 >
-                    <Upload {...props} maxCount={1}>
-                        <Button icon={<UploadOutlined />}>Выбрать файл</Button>
-                    </Upload>
+                    {filePath ? (
+                        <Row align="middle" gutter={8}>
+                            <Col>
+                                <Typography.Text>{fileName || 'Excel'}</Typography.Text>
+                            </Col>
+                            <Col>
+                                <Button onClick={() => setFilePath(null)} danger size="small">
+                                    Удалить
+                                </Button>
+                            </Col>
+                        </Row>
+                    ) : (
+                        <Button type="default" onClick={handleFileSelect}>
+                            Выбрать Excel файл
+                        </Button>
+                    )}
                 </Form.Item>
 
                 <Row gutter={16}>
@@ -214,7 +208,7 @@ function App(): React.JSX.Element {
                 <Form.Item
                     name="paymentMethods"
                     label="Вид оплаты"
-                    initialValue={[ PAYMENT_METHOD_OPTIONS.cashless ]}
+                    initialValue={[PAYMENT_METHOD_OPTIONS.cashless]}
                     rules={[{ required: true, message: 'Выберите хотя бы один вид оплаты' }]}
                 >
                     <Select
