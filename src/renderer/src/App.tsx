@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Col, DatePicker, Form, InputNumber, Row, Select, message, Typography, Spin } from 'antd';
+import { Button, Col, DatePicker, Form, InputNumber, Popconfirm, Row, Select, message, Typography, Spin } from 'antd';
 import { parseExcel, StudentPayment } from './utils/excelParser';
 import { createZip } from './utils/zip';
 import { formatDate } from './utils/date';
@@ -185,12 +185,19 @@ function App(): React.JSX.Element {
                                 <Typography.Text>{fileName || 'Excel'}</Typography.Text>
                             </Col>
                             <Col>
-                                <Button onClick={() => {
-                                    setFilePath(null);
-                                    setExcelPassword(undefined);
-                                }} danger size="small">
-                                    Удалить
-                                </Button>
+                                <Popconfirm
+                                    title="Вы уверены, что хотите удалить файл?"
+                                    onConfirm={() => {
+                                        setFilePath(null);
+                                        setExcelPassword(undefined);
+                                    }}
+                                    okText="Да"
+                                    cancelText="Нет"
+                                >
+                                    <Button danger size="small">
+                                        Удалить
+                                    </Button>
+                                </Popconfirm>
                             </Col>
                         </Row>
                     ) : (
