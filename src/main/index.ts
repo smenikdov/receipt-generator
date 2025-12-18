@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron';
+import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import icon from '../../resources/icon.png?asset';
@@ -61,7 +61,18 @@ app.whenReady().then(() => {
 
     createWindow();
 
-    autoUpdater.checkForUpdatesAndNotify();
+    autoUpdater.checkForUpdates();
+
+    autoUpdater.on('update-downloaded', () => {
+        dialog.showMessageBox({
+            type: 'info',
+            title: 'Обновление готово к установке',
+            message: 'Обновление было загружено и будет установлено после перезапуска приложения.',
+            buttons: ['Перезапустить сейчас']
+        }).then(() => {
+            autoUpdater.quitAndInstall();
+        });
+    });
 
     app.on('activate', function () {
         // On macOS it's common to re-create a window in the app when the
