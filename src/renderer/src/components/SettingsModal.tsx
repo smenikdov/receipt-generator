@@ -35,11 +35,11 @@ const SettingsModal: React.FC<Props> = ({ open, onClose, lessonShortcuts, onUpda
             key: 'value',
         },
         {
-            title: 'Действие',
+            title: 'Удаление',
             key: 'action',
             render: (_: any, record: { key: string }) => (
                 <Popconfirm
-                    title="Вы уверены, что хотите удалить эту расшифровку?"
+                    title="Вы уверены, что хотите удалить это сокращение?"
                     onConfirm={() => handleDelete(record.key)}
                 >
                     <Button type="text" icon={<DeleteOutlined />} />

@@ -7,6 +7,8 @@ import { getOptionsFromConstants, sleep } from './utils/index';
 import { saveAs } from 'file-saver';
 import { DEFAULT_LESSON_SHORTCUTS, PAYMENT_METHOD_OPTIONS, APP_VERSION } from './constants';
 
+import { SettingOutlined } from '@ant-design/icons';
+
 import type { DocumentProps } from '@react-pdf/renderer';
 
 import Receipt from './pdf/Receipt';
@@ -169,7 +171,7 @@ function App(): React.JSX.Element {
                 <Title level={3} style={{ margin: 0 }}>
                     Генерация квитанций
                 </Title>
-                <Button onClick={() => setSettingsVisible(true)}>
+                <Button onClick={() => setSettingsVisible(true)} icon={<SettingOutlined />}>
                     Настройка сокращений
                 </Button>
             </div>
