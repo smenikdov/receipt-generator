@@ -16,13 +16,19 @@ export const api = {
     },
 
     readExcelWithPassword: async (filePath: string, password?: string) => {
-        const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.readFile(filePath, { password });
-        const worksheet = workbook.worksheets[0];
-        const rows: any = [];
-        worksheet.eachRow((row) => rows.push(row.values));
+        try {
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.readFile(filePath, { password });
+            const worksheet = workbook.worksheets[0];
+            const rows: any = [];
+            worksheet.eachRow((row) => rows.push(row.values));
 
-        return rows;
+            return rows;
+        }
+        catch (error) {
+            console.log('Error parsing excel file:', error);
+            throw new Error('error parsing excel file');
+        }
     },
 };
 
