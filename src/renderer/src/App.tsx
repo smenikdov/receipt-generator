@@ -104,9 +104,16 @@ function App(): React.JSX.Element {
 
             message.success(`Сгенерировано ${pdfs.length} PDF файлов.`);
         }
-        catch (error) {
+        catch (error: any) {
             console.error('Error generating pdf files', error);
-            message.error('Произошла ошибка при генерации PDF файлов. Проверьте корректность Excel файла или обратитесь в техподдержку.');
+
+            if (typeof error.message === 'string' && error.message.includes('error parsing excel file')) {
+                message.warning('Произошла ошибка при чтении файла, проверьте правильность пароля и загрузите документ заново.');
+                setFilePath(null);
+            }
+            else {
+                message.error('Произошла ошибка при генерации PDF файлов. Проверьте корректность Excel файла или обратитесь в техподдержку.');
+            }
         }
         finally {
             setLoading(false);
