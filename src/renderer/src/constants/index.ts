@@ -13,3 +13,6 @@ export const PAYMENT_METHOD_OPTIONS = {
     cash:     2,
 };
 
+export const APP_VERSION = '1.0.2';
+
+

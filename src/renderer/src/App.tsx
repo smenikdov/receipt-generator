@@ -5,7 +5,7 @@ import { createZip } from './utils/zip';
 import { formatDate } from './utils/date';
 import { getOptionsFromConstants, sleep } from './utils/index';
 import { saveAs } from 'file-saver';
-import { DEFAULT_LESSON_SHORTCUTS, PAYMENT_METHOD_OPTIONS } from './constants';
+import { DEFAULT_LESSON_SHORTCUTS, PAYMENT_METHOD_OPTIONS, APP_VERSION } from './constants';
 
 import type { DocumentProps } from '@react-pdf/renderer';
 
@@ -290,6 +290,13 @@ function App(): React.JSX.Element {
                 onCancel={handlePasswordModalCancel}
                 fileName={fileName || ''}
             />
+
+            <Typography.Text style={{ fontSize: '0.8em', color: '#888', textAlign: 'center', display: 'block', marginTop: '20px' }}>
+                Версия приложения: {APP_VERSION}
+            </Typography.Text>
+            <Typography.Text style={{ fontSize: '0.8em', color: '#888', textAlign: 'center', display: 'block' }}>
+                © 2025 <a href="https://vdelo.pro" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>vdelo.pro</a>
+            </Typography.Text>
         </div>
     );
 }
