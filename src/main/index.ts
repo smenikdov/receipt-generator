@@ -3,6 +3,7 @@ import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import icon from '../../resources/icon.png?asset';
 import { api } from './api';
+import { autoUpdater } from 'electron-updater';
 
 function createWindow(): void {
     // Create the browser window.
@@ -52,10 +53,15 @@ app.whenReady().then(() => {
 
     ipcMain.on('ping', () => console.log('pong'));
 
+    // @ts-ignore
     ipcMain.handle('pickFile', (_, ...args) => api.pickFile(...args));
+
+    // @ts-ignore
     ipcMain.handle('readExcelWithPassword', (_, ...args) => api.readExcelWithPassword(...args));
 
     createWindow();
+
+    autoUpdater.checkForUpdatesAndNotify();
 
     app.on('activate', function () {
         // On macOS it's common to re-create a window in the app when the
